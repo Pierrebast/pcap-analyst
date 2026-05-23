@@ -38,7 +38,8 @@ def generate_report(findings, pcap_filename):
 
     report_text = message.content[0].text
 
-    filename = pcap_filename + "_" + datetime.now().strftime("%Y%m%d_%H%M%S") + ".md"
+    base_name = os.path.basename(pcap_filename)  # gives "test.pcap"
+    filename = base_name + "_" + datetime.now().strftime("%Y%m%d_%H%M%S") + ".md"
     filepath = os.path.join(REPORT_DIR, filename)
     with open(filepath,"w") as f:
         f.write(report_text)

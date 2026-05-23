@@ -1,7 +1,5 @@
 from collections import defaultdict
-
-PORTSCAN_THRESHOLD = 15  # number of unique ports to flag
-DNSQ_THRESHOLD = 15  # number of DNS queries to flag
+from config import PORTSCAN_THRESHOLD, DNSQ_THRESHOLD, DNS_LENGTH_THRESHOLD
 
 def detect_port_scan(packets):
     # packets is the list of dicts from parser.py
@@ -58,7 +56,7 @@ def detect_dns_tunneling(packets):
     for packet in packets:
         if packet["qname"] is not None:
             dns_queries[packet["src"]].add(packet["qname"])
-            if len(packet["qname"]) > 50:
+            if len(packet["qname"]) > DNS_LENGTH_THRESHOLD:
                 entry = {
 
                     "type": "DNS tunneling",

@@ -1,4 +1,4 @@
-from scapy.all import rdpcap, IP, TCP, UDP, ARP
+from scapy.all import rdpcap, IP, TCP, UDP, ARP, DNS, DNSQR
 
 PROTO_MAP = {
     6: "TCP",
@@ -21,6 +21,13 @@ def parse_pcap(filepath):
             elif UDP in packet:
                 sport = packet[UDP].sport
                 dport = packet[UDP].dport
+                if dport == 53:
+                    if DNS in packet and DNSQR in packet:
+                        qname = packet[DNSQR].qname.decode("utf-8", errors="ignore")
+                    else:
+                        qname = None
+                else:
+                    qname = None
             else:
                 sport = None
                 dport = None
@@ -32,6 +39,7 @@ def parse_pcap(filepath):
                 "sport": sport,
                 "dport": dport,
                 "protocol": resolve_proto(packet[IP].proto),
+                "qname": qname,
                 "length": len(packet),
                 "time": packet.time
             }
@@ -43,6 +51,7 @@ def parse_pcap(filepath):
                 "mac": packet[ARP].hwsrc,     # MAC claiming it
                 "protocol": "ARP",
                 "dst": packet[ARP].pdst,
+                "qname": qname,
                 "sport": None,
                 "dport": None,
                 "length": len(packet),

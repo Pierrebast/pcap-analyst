@@ -1,6 +1,7 @@
 from collections import defaultdict
 
 PORTSCAN_THRESHOLD = 15  # number of unique ports to flag
+DNSQ_THRESHOLD = 15  # number of DNS queries to flag
 
 def detect_port_scan(packets):
     # packets is the list of dicts from parser.py
@@ -46,4 +47,35 @@ def detect_arp_spoof(packets):
                     "details": f"{ip} is claimed by {len(mac_addr[ip])} different MAC addresses - possible ARP spoofing"
                 }
             findings.append(find)
+    return findings
+
+def detect_dns_tunneling(packets):
+
+    findings = []
+
+    dns_queries = defaultdict(set)
+
+    for packet in packets:
+        if packet["qname"] is not None:
+            dns_queries[packet["src"]].add(packet["qname"])
+            if len(packet["qname"]) > 50:
+                entry = {
+
+                    "type": "DNS tunneling",
+                    "src": packet["src"],
+                    "query_length": len(packet["qname"]),
+                    "details": f"{packet['src']} contains unusual long DNS query {packet['qname']} - possible DNS tunneling."
+                }
+                findings.append(entry)
+
+    for q in dns_queries:
+        if len(dns_queries[q]) > DNSQ_THRESHOLD:
+            entry = {
+
+                    "type": "DNS tunneling",
+                    "src": q,
+                    "number_queries": len(dns_queries[q]),
+                    "details": f"{q} performs more than threshold DNS queries - possible DNS tunneling."
+                }
+            findings.append(entry)
     return findings

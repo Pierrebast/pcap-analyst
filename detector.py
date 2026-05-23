@@ -25,3 +25,25 @@ def detect_port_scan(packets):
             findings.append(find)
     
     return findings
+
+def detect_arp_spoof(packets):
+
+    findings = []
+
+    mac_addr = defaultdict(set)
+
+    for packet in packets:
+
+        if packet["mac"] is not None:
+            mac_addr[packet["src"]].add(packet["mac"])
+    
+    for ip in mac_addr:
+        if len(mac_addr[ip]) > 1:
+            find = {
+                    "type": "ARP SPOOFING",
+                    "src": ip,
+                    "macs_detected": list(mac_addr[ip]),
+                    "details": f"{ip} is claimed by {len(mac_addr[ip])} different MAC addresses - possible ARP spoofing"
+                }
+            findings.append(find)
+    return findings

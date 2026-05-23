@@ -1,4 +1,4 @@
-from scapy.all import rdpcap, IP, TCP, UDP
+from scapy.all import rdpcap, IP, TCP, UDP, ARP
 
 PROTO_MAP = {
     6: "TCP",
@@ -28,9 +28,23 @@ def parse_pcap(filepath):
             entry = {
                 "src": packet[IP].src,
                 "dst": packet[IP].dst,
+                "mac": None,
                 "sport": sport,
                 "dport": dport,
                 "protocol": resolve_proto(packet[IP].proto),
+                "length": len(packet),
+                "time": packet.time
+            }
+            result.append(entry)
+
+        if ARP in packet:
+            entry = {
+                "src": packet[ARP].psrc,      # IP claiming
+                "mac": packet[ARP].hwsrc,     # MAC claiming it
+                "protocol": "ARP",
+                "dst": packet[ARP].pdst,
+                "sport": None,
+                "dport": None,
                 "length": len(packet),
                 "time": packet.time
             }

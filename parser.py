@@ -18,9 +18,12 @@ def parse_pcap(filepath):
             if TCP in packet:
                 sport = packet[TCP].sport
                 dport = packet[TCP].dport
+                flags = str(packet[TCP].flags)
+                qname = None
             elif UDP in packet:
                 sport = packet[UDP].sport
                 dport = packet[UDP].dport
+                flags = None
                 if dport == 53:
                     if DNS in packet and DNSQR in packet:
                         qname = packet[DNSQR].qname.decode("utf-8", errors="ignore")
@@ -31,6 +34,7 @@ def parse_pcap(filepath):
             else:
                 sport = None
                 dport = None
+                flags = None
 
             entry = {
                 "src": packet[IP].src,
@@ -38,6 +42,7 @@ def parse_pcap(filepath):
                 "mac": None,
                 "sport": sport,
                 "dport": dport,
+                "flags": flags,
                 "protocol": resolve_proto(packet[IP].proto),
                 "qname": qname,
                 "length": len(packet),
@@ -51,9 +56,10 @@ def parse_pcap(filepath):
                 "mac": packet[ARP].hwsrc,     # MAC claiming it
                 "protocol": "ARP",
                 "dst": packet[ARP].pdst,
-                "qname": qname,
+                "qname": None,
                 "sport": None,
                 "dport": None,
+                "flags": None,
                 "length": len(packet),
                 "time": packet.time
             }

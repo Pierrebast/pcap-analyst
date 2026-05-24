@@ -1,5 +1,5 @@
 from collections import defaultdict
-from config import PORTSCAN_THRESHOLD, DNSQ_THRESHOLD, DNS_LENGTH_THRESHOLD
+from config import PORTSCAN_THRESHOLD, DNSQ_THRESHOLD, DNS_LENGTH_THRESHOLD, ICMP_FLOOD_THRESHOLD
 
 def detect_port_scan(packets):
     # packets is the list of dicts from parser.py
@@ -75,5 +75,28 @@ def detect_dns_tunneling(packets):
                     "number_queries": len(dns_queries[q]),
                     "details": f"{q} performs more than threshold DNS queries - possible DNS tunneling."
                 }
+            findings.append(entry)
+    return findings
+
+def detect_icmp_flood(packets):
+
+    findings = []
+
+    count = defaultdict(int)
+
+    for packet in packets:
+
+        if packet["protocol"] == "ICMP":
+            count[packet["src"],packet["dst"]] +=1
+
+    for src,dst in count:   
+        if count[src,dst] > ICMP_FLOOD_THRESHOLD:
+            entry = {
+                "type": "ICMP FLOOD",
+                "src": src,
+                "dst": dst,
+                "packet_count": count[src,dst],
+                "details": f"{src} sent {count[src,dst]} ICMP packets to {dst} - possible ICMP flood"
+            }
             findings.append(entry)
     return findings

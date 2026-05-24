@@ -42,7 +42,7 @@ All thresholds are configurable in `config.py`.
 
 **1 — Clone the repo**
 ```bash
-git clone https://github.com/yourusername/pcap-analyst.git
+git clone https://github.com/Pierrebast/pcap-analyst.git
 cd pcap-analyst
 ```
 
